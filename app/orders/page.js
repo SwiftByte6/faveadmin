@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import Header from '../../components/layout/Header';
 import Icon from '../../components/ui/Icon';
 import { supabaseHelpers, supabase } from '../../lib/supabase';
+import Image from 'next/image';
 
 const OrdersPage = () => {
-  // Define valid order statuses that the database accepts
-  const VALID_ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+  // Define valid order statuses the database accepts
+  // Matches CHECK constraint in DB: pending, processing, shipped, delivered, cancelled, confirmed, success
+  const VALID_ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'success'];
   
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
@@ -24,6 +26,7 @@ const OrdersPage = () => {
   const [notification, setNotification] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchOrders();
     setupRealtimeSubscription();
@@ -215,8 +218,10 @@ const OrdersPage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'delivered': return 'bg-pink-100 text-pink-800';
+      case 'success': return 'bg-green-100 text-green-800';
       case 'processing': return 'bg-purple-100 text-purple-800';
       case 'shipped': return 'bg-rose-100 text-rose-800';
+      case 'confirmed': return 'bg-blue-100 text-blue-800';
       case 'pending': return 'bg-orange-100 text-orange-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -225,7 +230,35 @@ const OrdersPage = () => {
 
   // Order management functions
   const handleViewOrder = (order) => {
-    setSelectedOrder(order);
+    // Normalize items to an array (JSONB, JSON string, or object)
+    let normalizedItems = [];
+    try {
+      if (Array.isArray(order?.items)) {
+        normalizedItems = order.items;
+      } else if (typeof order?.items === 'string') {
+        normalizedItems = JSON.parse(order.items);
+      } else if (order?.items && typeof order.items === 'object') {
+        normalizedItems = [order.items];
+      }
+    } catch (e) {
+      console.warn('Failed to parse items for order', order?.id, e);
+      normalizedItems = [];
+    }
+
+    // Log a stable snapshot (avoid async state log)
+    console.log('Opening order details:', {
+      id: order?.id,
+      status: order?.status,
+      total_amount: order?.total_amount,
+      itemsCount: normalizedItems.length,
+      firstItem: normalizedItems[0] ? {
+        id: normalizedItems[0].id,
+        title: normalizedItems[0].title,
+        quantity: normalizedItems[0].quantity,
+      } : null,
+    });
+
+    setSelectedOrder({ ...order, items: normalizedItems });
     setShowOrderModal(true);
   };
 
@@ -635,12 +668,15 @@ const OrdersPage = () => {
                               {order.items.slice(0, 2).map((item, index) => (
                                 <div key={index} className="flex items-center space-x-2 text-xs">
                                   {item.images && item.images.length > 0 && (
-                                    <img 
-                                      src={item.images[0]} 
+                                    <Image
+                                      src={item.images[0]}
                                       alt={item.title || 'Product'}
-                                      className="w-6 h-6 rounded object-cover flex-shrink-0"
+                                      width={24}
+                                      height={24}
+                                      className="rounded object-cover flex-shrink-0 w-6 h-6"
                                       onError={(e) => {
-                                        e.target.style.display = 'none';
+                                        // Hide image if it fails to load
+                                        if (e?.target) e.target.style.display = 'none';
                                       }}
                                     />
                                   )}
@@ -838,7 +874,7 @@ const OrdersPage = () => {
                               <td className="px-4 py-3">
                                 {item.images && item.images.length > 0 ? (
                                   <div className="relative">
-                                    <img 
+                                    <Image 
                                       src={item.images[0]} 
                                       alt={item.title || 'Product'}
                                       className="w-16 h-16 rounded-lg object-cover border border-gray-200"
