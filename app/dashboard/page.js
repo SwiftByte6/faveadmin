@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/layout/Header';
 import KPICard from '../../components/dashboard/KPICard';
 import { RevenueChart, OrderVolumeChart } from '../../components/charts/Charts';
@@ -23,18 +23,7 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-  useEffect(() => {
-    fetchDashboardData();
-    
-    // Set up auto-refresh every 30 seconds
-    const interval = setInterval(() => {
-      fetchDashboardData();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchDashboardData = async (isRefresh = false) => {
+  const fetchDashboardData = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -69,6 +58,41 @@ export default function DashboardPage() {
       setLastUpdated(new Date());
       
       // Generate notifications based on new data
+      const generateNotifications = () => {
+        const newNotifications = [];
+        
+        // Check for low stock products
+        const lowStockProducts = data.products.filter(product => (product.quantity || 0) < 10);
+        if (lowStockProducts.length > 0) {
+          newNotifications.push({
+            id: 'low-stock',
+            type: 'warning',
+            title: 'Low Stock Alert',
+            message: `${lowStockProducts.length} products are running low on stock`,
+            timestamp: new Date()
+          });
+        }
+        
+        // Check for recent orders
+        const recentOrders = data.orders.filter(order => {
+          const orderDate = new Date(order.created_at);
+          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          return orderDate > oneDayAgo;
+        });
+        
+        if (recentOrders.length > 0) {
+          newNotifications.push({
+            id: 'recent-orders',
+            type: 'info',
+            title: 'New Orders',
+            message: `${recentOrders.length} new orders in the last 24 hours`,
+            timestamp: new Date()
+          });
+        }
+        
+        return newNotifications;
+      };
+      
       const newNotifications = generateNotifications();
       setNotifications(newNotifications);
     } catch (err) {
@@ -78,40 +102,19 @@ export default function DashboardPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
-  const generateNotifications = () => {
-    const newNotifications = [];
+  useEffect(() => {
+    fetchDashboardData();
     
-    // Check for low stock products
-    const lowStockProducts = dashboardData.products.filter(product => (product.quantity || 0) < 10);
-    if (lowStockProducts.length > 0) {
-      newNotifications.push({
-        id: 'low-stock',
-        type: 'warning',
-        message: `${lowStockProducts.length} product${lowStockProducts.length > 1 ? 's' : ''} running low on stock`,
-        timestamp: new Date()
-      });
-    }
-    
-    // Check for recent orders
-    const recentOrders = dashboardData.orders.filter(order => {
-      const orderDate = new Date(order.created_at);
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      return orderDate > oneHourAgo;
-    });
-    
-    if (recentOrders.length > 0) {
-      newNotifications.push({
-        id: 'new-orders',
-        type: 'info',
-        message: `${recentOrders.length} new order${recentOrders.length > 1 ? 's' : ''} in the last hour`,
-        timestamp: new Date()
-      });
-    }
-    
-    return newNotifications;
-  };
+    // Set up auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchDashboardData]);
+
 
   const calculateKPIs = () => {
     const totalRevenue = dashboardData.orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/layout/Header';
 import Icon from '../../components/ui/Icon';
 import { supabaseHelpers, supabase } from '../../lib/supabase';
@@ -26,100 +26,7 @@ const OrdersPage = () => {
   const [notification, setNotification] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    fetchOrders();
-    setupRealtimeSubscription();
-    
-    return () => {
-      // Cleanup subscription on unmount
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-    };
-  }, []);
-
-  // Real-time subscription for order updates
-  const setupRealtimeSubscription = () => {
-    const newSubscription = supabase
-      .channel('orders_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'orders' 
-        }, 
-        (payload) => {
-          console.log('Order change received:', payload);
-          console.log('Event type:', payload.eventType);
-          console.log('New data:', payload.new);
-          console.log('Old data:', payload.old);
-          
-          // Handle different types of changes
-          if (payload.eventType === 'UPDATE') {
-            console.log('Updating order in local state');
-            // Update specific order in local state
-            setOrders(prevOrders => 
-              prevOrders.map(order => 
-                order.id === payload.new.id 
-                  ? { ...order, ...payload.new }
-                  : order
-              )
-            );
-          } else if (payload.eventType === 'INSERT') {
-            console.log('Adding new order to local state');
-            // Add new order to local state
-            setOrders(prevOrders => [payload.new, ...prevOrders]);
-          } else if (payload.eventType === 'DELETE') {
-            console.log('Removing order from local state');
-            // Remove order from local state
-            setOrders(prevOrders => 
-              prevOrders.filter(order => order.id !== payload.old.id)
-            );
-          } else {
-            console.log('Refreshing entire list due to unknown event type');
-            // For other events, refresh the entire list
-            fetchOrders();
-          }
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setIsConnected(true);
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          setIsConnected(false);
-        }
-      });
-
-    setSubscription(newSubscription);
-    return newSubscription;
-  };
-
-  // Filter orders based on search and status
-  useEffect(() => {
-    let filtered = orders;
-
-    // Always exclude cancelled orders from the main view
-    filtered = filtered.filter(order => order.status !== 'cancelled');
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(order => 
-        order.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.id?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by status (excluding cancelled since they're already filtered out)
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => order.status === statusFilter);
-    }
-
-    setFilteredOrders(filtered);
-  }, [orders, searchTerm, statusFilter]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabaseHelpers.getOrders();
@@ -213,7 +120,95 @@ const OrdersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Real-time subscription for order updates
+  const setupRealtimeSubscription = useCallback(() => {
+    const newSubscription = supabase
+      .channel('orders_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'orders' 
+        }, 
+        (payload) => {
+          console.log('Order change received:', payload);
+          console.log('Event type:', payload.eventType);
+          console.log('New data:', payload.new);
+          console.log('Old data:', payload.old);
+          
+          // Handle different types of changes
+          if (payload.eventType === 'UPDATE') {
+            console.log('Updating order in local state');
+            // Update specific order in local state
+            setOrders(prevOrders => 
+              prevOrders.map(order => 
+                order.id === payload.new.id 
+                  ? { ...order, ...payload.new }
+                  : order
+              )
+            );
+          } else if (payload.eventType === 'INSERT') {
+            console.log('Adding new order to local state');
+            // Add new order to local state
+            setOrders(prevOrders => [payload.new, ...prevOrders]);
+          } else if (payload.eventType === 'DELETE') {
+            console.log('Removing order from local state');
+            // Remove order from local state
+            setOrders(prevOrders => 
+              prevOrders.filter(order => order.id !== payload.old.id)
+            );
+          } else {
+            console.log('Refreshing entire list due to unknown event type');
+            // For other events, refresh the entire list
+            fetchOrders();
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setIsConnected(true);
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setIsConnected(false);
+        }
+      });
+
+    setSubscription(newSubscription);
+    return newSubscription;
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    fetchOrders();
+    const sub = setupRealtimeSubscription();
+    return () => {
+      sub?.unsubscribe?.();
+    };
+  }, [fetchOrders, setupRealtimeSubscription]);
+
+  // Filter orders based on search and status
+  useEffect(() => {
+    let filtered = orders;
+
+    // Always exclude cancelled orders from the main view
+    filtered = filtered.filter(order => order.status !== 'cancelled');
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(order => 
+        order.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.id?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by status (excluding cancelled since they're already filtered out)
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
+
+    setFilteredOrders(filtered);
+  }, [orders, searchTerm, statusFilter]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -877,6 +872,8 @@ const OrdersPage = () => {
                                     <Image 
                                       src={item.images[0]} 
                                       alt={item.title || 'Product'}
+                                      width={64}
+                                      height={64}
                                       className="w-16 h-16 rounded-lg object-cover border border-gray-200"
                                       onError={(e) => {
                                         e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAyOEMxNi42ODYzIDI4IDEzLjkgMjUuMzEzNyAxMy45IDIyVjE4QzEzLjkgMTQuNjg2MyAxNi41ODYzIDEyIDIwIDEyQzIzLjMxMzcgMTIgMjYuMSAxNC42ODYzIDI2LjEgMThWMjJDMjYuMSAyNS4zMTM3IDIzLjQxMzcgMjggMjAgMjhaIiBmaWxsPSIjOUI5QjlCIi8+CjxwYXRoIGQ9Ik0yNiAxNi41SDI4VjMxLjVIMTJWMTYuNUgxNFYxNUMxNCA5LjIgMTguMjA1IDYgMjQgNkMyOS43OTUgNiAzNCAxMC43OTUgMzQgMTZWMTguNUgzMlYxNkMzMiAxMi42ODYzIDI5LjMxMzcgMTAgMjYgMTBDMjIuNjg2MyAxMCAyMCAxMi42ODYzIDIwIDE2VjE2LjVIMjJWMTZIMjZWMTZDMjYgMTIuNjg2MyAyOC42ODYzIDEwIDMyIDEwQzM1LjMxMzcgMTAgMzggMTIuNjg2MyAzOCAxNlYzMS41SDJWMTZDMiAxMi42ODYzIDQuNjg2MyAxMCA4IDEwQzExLjMxMzcgMTAgMTQgMTIuNjg2MyAxNCAxNlYxNi41SDE2VjE2WiIgZmlsbD0iIzlCOUI5QiIvPgo8L3N2Zz4K';

@@ -24,7 +24,7 @@ const Header = ({ onMenuClick, lastUpdated, onRefresh, refreshing = false }) => 
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600">Welcome back! Here's what's happening with your store.</p>
+            <p className="text-gray-600">Welcome back! Here&#39;s what&#39;s happening with your store.</p>
             {lastUpdated && (
               <p className="text-sm text-gray-500">Last updated: {formatLastUpdated(lastUpdated)}</p>
             )}
