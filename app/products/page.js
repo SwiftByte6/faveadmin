@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Header from '../../components/layout/Header';
 import Icon from '../../components/ui/Icon';
+import ImageCropper from '../../components/ui/ImageCropper';
 import { supabaseHelpers } from '../../lib/supabase';
 import { uploadImages } from '../../lib/storage';
 import { insertProduct } from '../../lib/db';
@@ -23,6 +24,8 @@ const ProductsPage = () => {
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [rating, setRating] = useState('');
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
 
   const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -37,6 +40,35 @@ const ProductsPage = () => {
     } else {
       setSelectedSizes(selectedSizes.filter(size => size !== value));
     }
+  };
+
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      // For now, just add the first file to crop
+      const file = files[0];
+      setImageToCrop(file);
+      setShowImageCropper(true);
+    }
+  };
+
+  const handleMultipleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      // Add all files directly without cropping for now
+      setSelectedImages(prev => [...prev, ...files]);
+    }
+  };
+
+  const handleCropComplete = (croppedFile) => {
+    setSelectedImages(prev => [...prev, croppedFile]);
+    setShowImageCropper(false);
+    setImageToCrop(null);
+  };
+
+  const handleCropCancel = () => {
+    setShowImageCropper(false);
+    setImageToCrop(null);
   };
 
   const fetchProducts = async () => {
@@ -485,17 +517,46 @@ const ProductsPage = () => {
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                           </svg>
-                          <span className="text-xs text-gray-500 text-center">Upload</span>
+                          <span className="text-xs text-gray-500 text-center">Upload & Crop</span>
                         </label>
                         <input
                           id="image-upload"
                           type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="hidden"
+                        />
+                      </div>
+                      
+                      {/* Multiple Image Upload without cropping */}
+                      <div className="mt-4">
+                        <label
+                          htmlFor="multiple-image-upload"
+                          className="flex items-center justify-center w-full h-16 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                        >
+                          <svg
+                            className="w-6 h-6 mr-2 text-gray-500"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 20 16"
+                          >
+                            <path
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                          </svg>
+                          <span className="text-sm text-gray-500">Upload Multiple (No Crop)</span>
+                        </label>
+                        <input
+                          id="multiple-image-upload"
+                          type="file"
                           multiple
                           accept="image/*"
-                          onChange={(e) => {
-                            const filesArray = Array.from(e.target.files);
-                            setSelectedImages((prev) => [...prev, ...filesArray]);
-                          }}
+                          onChange={handleMultipleImageSelect}
                           className="hidden"
                         />
                       </div>
@@ -511,17 +572,35 @@ const ProductsPage = () => {
                             alt={`Preview ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
-                          <button
-                            type="button"
-                            onClick={() => setSelectedImages(selectedImages.filter((_, i) => i !== index))}
-                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            ×
-                          </button>
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setImageToCrop(img);
+                                  setShowImageCropper(true);
+                                }}
+                                className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-blue-600 transition-colors"
+                                title="Crop"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedImages(selectedImages.filter((_, i) => i !== index))}
+                                className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                                title="Remove"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Upload multiple images or use emoji fallback below</p>
+                    <p className="text-xs text-gray-500 mt-2">Upload images with crop & rotate options, or use emoji fallback below</p>
                   </div>
 
                   {/* Emoji Fallback */}
@@ -810,6 +889,15 @@ const ProductsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Image Cropper Modal */}
+      <ImageCropper
+        isOpen={showImageCropper}
+        onClose={handleCropCancel}
+        onCropComplete={handleCropComplete}
+        imageFile={imageToCrop}
+        aspectRatio={1} // Square aspect ratio for product images
+      />
     </div>
   );
 };
