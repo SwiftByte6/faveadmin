@@ -43,6 +43,7 @@ const InventoryPage = () => {
       setLoading(false);
     }
   };
+  const num=1
 
   const getStatusColor = (quantity) => {
     if (quantity === 0) return 'bg-gray-100 text-gray-800';
