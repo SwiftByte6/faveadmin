@@ -26,6 +26,8 @@ const ProductsPage = () => {
   const [rating, setRating] = useState('');
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
+  const [rawDescription, setRawDescription] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -69,6 +71,46 @@ const ProductsPage = () => {
   const handleCropCancel = () => {
     setShowImageCropper(false);
     setImageToCrop(null);
+  };
+
+  const handleGenerateSEO = async () => {
+    if (!rawDescription.trim()) {
+      setError('Please enter a raw description');
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/generate-seo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rawDescription }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate SEO content');
+      }
+
+      const data = await response.json();
+
+      // Set the title and description fields
+      const titleInput = document.querySelector('input[name="title"]');
+      const descriptionTextarea = document.querySelector('textarea[name="description"]');
+
+      if (titleInput && descriptionTextarea) {
+        titleInput.value = data.title;
+        descriptionTextarea.value = data.description;
+      }
+    } catch (err) {
+      console.error('Error generating SEO:', err);
+      setError('Failed to generate SEO content. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const fetchProducts = async () => {
@@ -370,6 +412,8 @@ const ProductsPage = () => {
                   setSelectedImages([]);
                   setSelectedSizes([]);
                   setRating('');
+                  setRawDescription('');
+                  setIsGenerating(false);
                 }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
@@ -477,6 +521,25 @@ const ProductsPage = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                     <textarea name="description" rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"></textarea>
+                  </div>
+
+                  {/* Raw Description for SEO Generation */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Raw Description</label>
+                    <textarea 
+                      value={rawDescription}
+                      onChange={(e) => setRawDescription(e.target.value)}
+                      rows="3"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    ></textarea>
+                    <button
+                      type="button"
+                      onClick={handleGenerateSEO}
+                      disabled={isGenerating}
+                      className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:bg-pink-300"
+                    >
+                      {isGenerating ? 'Generating...' : 'Generate Title & Description'}
+                    </button>
                   </div>
 
                   {/* Available Sizes */}
@@ -622,6 +685,8 @@ const ProductsPage = () => {
                   setSelectedImages([]);
                   setSelectedSizes([]);
                   setRating('');
+                  setRawDescription('');
+                  setIsGenerating(false);
                 }} 
                 className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
