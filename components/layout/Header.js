@@ -1,6 +1,9 @@
 import Icon from '../ui/Icon';
+import { useMenu } from './MenuContext';
 
-const Header = ({ onMenuClick, lastUpdated, onRefresh, refreshing = false }) => {
+const Header = ({ lastUpdated, onRefresh, refreshing = false }) => {
+  const { openMenu } = useMenu();
+  
   const formatLastUpdated = (date) => {
     if (!date) return 'Never updated';
     const now = new Date();
@@ -17,7 +20,7 @@ const Header = ({ onMenuClick, lastUpdated, onRefresh, refreshing = false }) => 
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center space-x-4">
           <button 
-            onClick={onMenuClick}
+            onClick={openMenu}
             className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
           >
             <Icon name="menu" className="w-6 h-6" />

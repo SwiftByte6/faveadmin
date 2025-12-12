@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '../ui/Icon';
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, onClose, onMenuClick }) => {
   const pathname = usePathname();
   
   const menuItems = [
-    { name: "Dashboard", icon: "dashboard", href: "/", active: pathname === "/" },
+    { name: "Dashboard", icon: "dashboard", href: "/dashboard", active: pathname === "/dashboard" },
     { name: "Products", icon: "products", href: "/products", active: pathname === "/products" },
     { name: "Orders", icon: "orders", href: "/orders", active: pathname === "/orders" },
     { name: "Customers", icon: "customers", href: "/customers", active: pathname === "/customers" },
@@ -32,7 +32,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <Link href="/" className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+          <Link href="/dashboard" className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
             FaveAdmin
           </Link>
           <button 
@@ -49,6 +49,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <li key={index}>
                 <Link 
                   href={item.href}
+                  onClick={onClose}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                     item.active 
                       ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' 
