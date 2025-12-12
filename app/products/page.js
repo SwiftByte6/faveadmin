@@ -402,11 +402,11 @@ const ProductsPage = () => {
 
       {/* Add Product Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-              <h3 className="text-xl font-semibold text-gray-900">Add New Product</h3>
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Add New Product</h3>
               <button
                 onClick={() => {
                   setShowAddModal(false);
@@ -427,13 +427,13 @@ const ProductsPage = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex-shrink-0">
+              <div className="mx-4 sm:mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex-shrink-0">
                 {error}
               </div>
             )}
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
               <form id="add-product-form" onSubmit={async (e) => {
                 e.preventDefault();
                 setIsSubmitting(true);
@@ -547,7 +547,7 @@ const ProductsPage = () => {
                   {/* Available Sizes */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">Available Sizes</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                       {sizeOptions.map(size => (
                         <label key={size} className="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                           <input
@@ -557,7 +557,7 @@ const ProductsPage = () => {
                             onChange={handleSizeCheckboxChange}
                             className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                           />
-                          <span className="text-sm font-medium text-gray-700">{size}</span>
+                          <span className="text-xs sm:text-sm font-medium text-gray-700">{size}</span>
                         </label>
                       ))}
                     </div>
@@ -566,8 +566,8 @@ const ProductsPage = () => {
                   {/* Image Upload */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">Product Images</label>
-                    <div className="flex flex-wrap gap-3">
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-pink-400 hover:bg-pink-50 transition-colors">
+                    <div className="flex flex-wrap gap-2 sm:gap-3 w-full overflow-x-hidden">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-pink-400 hover:bg-pink-50 transition-colors flex-shrink-0">
                         <label
                           htmlFor="image-upload"
                           className="flex flex-col items-center justify-center w-full h-full cursor-pointer"
@@ -582,7 +582,7 @@ const ProductsPage = () => {
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                           </svg>
-                          <span className="text-xs text-gray-500 text-center">Upload & Crop</span>
+                          <span className="text-xs text-gray-500 text-center px-1">Upload & Crop</span>
                         </label>
                         <input
                           id="image-upload"
@@ -594,13 +594,13 @@ const ProductsPage = () => {
                       </div>
                       
                       {/* Multiple Image Upload without cropping */}
-                      <div className="mt-4">
+                      <div className="w-full">
                         <label
                           htmlFor="multiple-image-upload"
-                          className="flex items-center justify-center w-full h-16 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                          className="flex items-center justify-center w-full h-12 sm:h-16 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
                         >
                           <svg
-                            className="w-6 h-6 mr-2 text-gray-500"
+                            className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-gray-500"
                             aria-hidden="true"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -614,7 +614,7 @@ const ProductsPage = () => {
                               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                             />
                           </svg>
-                          <span className="text-sm text-gray-500">Upload Multiple (No Crop)</span>
+                          <span className="text-xs sm:text-sm text-gray-500">Upload Multiple (No Crop)</span>
                         </label>
                         <input
                           id="multiple-image-upload"
@@ -630,7 +630,7 @@ const ProductsPage = () => {
                       {selectedImages.map((img, index) => (
                         <div
                           key={index}
-                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border border-gray-200 relative group"
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border border-gray-200 relative group flex-shrink-0"
                         >
                           <img
                             src={URL.createObjectURL(img)}
@@ -645,17 +645,17 @@ const ProductsPage = () => {
                                   setImageToCrop(img);
                                   setShowImageCropper(true);
                                 }}
-                                className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-blue-600 transition-colors"
+                                className="w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-blue-600 transition-colors"
                                 title="Crop"
                               >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setSelectedImages(selectedImages.filter((_, i) => i !== index))}
-                                className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                                className="w-6 h-6 sm:w-7 sm:h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
                                 title="Remove"
                               >
                                 ×
@@ -678,7 +678,7 @@ const ProductsPage = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 p-6 border-t border-gray-200 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t border-gray-200 flex-shrink-0">
               <button 
                 type="button" 
                 onClick={() => {
@@ -690,7 +690,7 @@ const ProductsPage = () => {
                   setRawDescription('');
                   setIsGenerating(false);
                 }} 
-                className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
@@ -698,7 +698,7 @@ const ProductsPage = () => {
                 type="submit" 
                 form="add-product-form"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 {isSubmitting && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
                 <span>{isSubmitting ? 'Adding...' : 'Add Product'}</span>
@@ -710,11 +710,11 @@ const ProductsPage = () => {
 
       {/* Edit Product Modal */}
       {showEditModal && selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-              <h3 className="text-xl font-semibold text-gray-900">Edit Product</h3>
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Edit Product</h3>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -732,13 +732,13 @@ const ProductsPage = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex-shrink-0">
+              <div className="mx-4 sm:mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex-shrink-0">
                 {error}
               </div>
             )}
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
               <form id="edit-product-form" onSubmit={async (e) => {
               e.preventDefault();
               setIsSubmitting(true);
