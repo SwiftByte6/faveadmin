@@ -91,19 +91,21 @@ const ProductsPage = () => {
         body: JSON.stringify({ rawDescription }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate SEO content');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        console.error('SEO API error:', data);
+        setError(data?.error || 'Failed to generate SEO content');
+        return;
+      }
 
       // Set the title and description fields
       const titleInput = document.querySelector('input[name="title"]');
       const descriptionTextarea = document.querySelector('textarea[name="description"]');
 
       if (titleInput && descriptionTextarea) {
-        titleInput.value = data.title;
-        descriptionTextarea.value = data.description;
+        titleInput.value = data.title || '';
+        descriptionTextarea.value = data.description || '';
       }
     } catch (err) {
       console.error('Error generating SEO:', err);
