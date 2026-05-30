@@ -223,6 +223,8 @@ const OrdersPage = () => {
     }
   };
 
+  const isPaymentConfirmed = (order) => order?.status === 'confirmed';
+
   // Order management functions
   const handleViewOrder = (order) => {
     // Normalize items to an array (JSONB, JSON string, or object)
@@ -625,7 +627,10 @@ const OrdersPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredOrders.map((order) => (
+                  {filteredOrders.map((order) => {
+                    const confirmedItems = isPaymentConfirmed(order) ? (order.items || []) : [];
+
+                    return (
                     <tr key={order.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
@@ -656,11 +661,11 @@ const OrdersPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex flex-col space-y-2">
                           <span className="font-medium text-gray-900">
-                            {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0} items
+                            {confirmedItems.reduce((sum, item) => sum + (item.quantity || 0), 0)} items
                           </span>
-                          {order.items && order.items.length > 0 && (
+                          {confirmedItems.length > 0 && (
                             <div className="space-y-1">
-                              {order.items.slice(0, 2).map((item, index) => (
+                              {confirmedItems.slice(0, 2).map((item, index) => (
                                 <div key={index} className="flex items-center space-x-2 text-xs">
                                   {item.images && item.images.length > 0 && (
                                     <Image
@@ -685,15 +690,17 @@ const OrdersPage = () => {
                                   </div>
                                 </div>
                               ))}
-                              {order.items.length > 2 && (
+                              {confirmedItems.length > 2 && (
                                 <div className="text-xs text-gray-400 pl-8">
-                                  +{order.items.length - 2} more items
+                                  +{confirmedItems.length - 2} more items
                                 </div>
                               )}
                             </div>
                           )}
-                          {(!order.items || order.items.length === 0) && (
-                            <span className="text-xs text-gray-400">No items</span>
+                          {confirmedItems.length === 0 && (
+                            <span className="text-xs text-gray-400">
+                              {isPaymentConfirmed(order) ? 'No items' : 'Visible after payment confirmation'}
+                            </span>
                           )}
                         </div>
                       </td>
@@ -757,7 +764,8 @@ const OrdersPage = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
