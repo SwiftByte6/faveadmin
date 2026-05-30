@@ -614,7 +614,7 @@ const ProductsPage = () => {
                               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                             />
                           </svg>
-                          <span className="text-xs sm:text-sm text-gray-500">Upload Multiple (No Crop)</span>
+                          <span className="text-xs sm:text-sm text-gray-500">Upload Multiple to Cloudinary</span>
                         </label>
                         <input
                           id="multiple-image-upload"
@@ -665,7 +665,7 @@ const ProductsPage = () => {
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Upload images with crop & rotate options, or use emoji fallback below</p>
+                    <p className="text-xs text-gray-500 mt-2">Uploads go to Cloudinary. Use the multiple uploader for extra product images, or the emoji fallback below if needed.</p>
                   </div>
 
                   {/* Emoji Fallback */}

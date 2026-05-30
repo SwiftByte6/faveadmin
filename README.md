@@ -19,6 +19,7 @@ A modern, girly-themed admin dashboard for women's fashion e-commerce built with
 - Node.js 18+ 
 - npm or yarn
 - Supabase account (optional - works with mock data)
+- Cloudinary account for product image uploads
 
 ### Installation
 
@@ -38,10 +39,13 @@ A modern, girly-themed admin dashboard for women's fashion e-commerce built with
    cp env.example .env.local
    ```
    
-   Fill in your Supabase credentials:
+   Fill in your Supabase and Cloudinary credentials:
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_unsigned_upload_preset
+   NEXT_PUBLIC_CLOUDINARY_FOLDER=products
    ```
 
 4. **Run the development server**
@@ -144,6 +148,7 @@ faveadmin/
 
 - **Frontend**: Next.js 15, React 19, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL)
+- **Media Uploads**: Cloudinary
 - **Charts**: Chart.js, React Chart.js 2
 - **Icons**: Custom emoji-based system
 - **Deployment**: Vercel-ready
