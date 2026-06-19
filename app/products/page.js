@@ -498,6 +498,7 @@ const ProductsPage = () => {
                         <option value="Lehengas">Lehengas</option>
                         <option value="Sarees">Sarees</option>
                         <option value="Western Wear">Western Wear</option>
+                        <option value="Western Wear">Nighty</option>
                         <option value="Co-ords">Co-ords</option>
                         <option value="Accessories">Accessories</option>
                       </select>
